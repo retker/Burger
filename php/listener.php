@@ -7,7 +7,7 @@
 //Фаза1
 
 if ((empty($_POST['email'])) || (empty($_POST['phone']))) {
-    echo ('ошибка поля email и phone должны быть заполнены.');
+    echo('ошибка поля email и phone должны быть заполнены.');
     return null;
 }
 
@@ -26,7 +26,7 @@ try {
     $str->execute([$_POST['email']]);
     $userId = $str->fetchColumn(0);
 } catch (PDOException $e) {
-    echo'Проблема с запросом поиска по адресу элетронной почты.';
+    echo 'Проблема с запросом поиска по адресу элетронной почты.';
     return;
 }
 
@@ -82,25 +82,6 @@ try {
 // Фаза 3
 
 require_once 'functions.php';
-
-function getOrderNumber(PDO $dbConnect, $userId)
-{
-    try {
-        $str = $dbConnect->prepare('SELECT count(*) AS count FROM orders WHERE userid = :userId');
-        $str->execute(array('userId' => $userId));
-        $count = $str->fetchColumn();
-    } catch (PDOException $e) {
-        echo 'Проблема с запросом кол-ва заказов у конкретного пользователя';
-        return null;
-    }
-    if ($count == 1) {
-        echo 'Это первый заказ данного пользователя!' . PHP_EOL;
-        return "1ый";
-    } else {
-        echo 'Это частый клиент!' . PHP_EOL;
-        return "$count-й";
-    }
-}
 
 $letters = __DIR__ . DIRECTORY_SEPARATOR . '../letters';
 if (!file_exists($letters)) {

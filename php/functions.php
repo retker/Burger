@@ -19,3 +19,22 @@ function makeAddress($street, $building, $block, $apartment, $floor)
     }
     return $address;
 }
+
+function getOrderNumber(PDO $dbConnect, $userId)
+{
+    try {
+        $str = $dbConnect->prepare('SELECT count(*) AS count FROM orders WHERE userid = :userId');
+        $str->execute(array('userId' => $userId));
+        $count = $str->fetchColumn();
+    } catch (PDOException $e) {
+        echo 'Проблема с запросом кол-ва заказов у конкретного пользователя';
+        return null;
+    }
+    if ($count == 1) {
+        echo 'Это первый заказ данного пользователя!' . PHP_EOL;
+        return "1ый";
+    } else {
+        echo 'Это частый клиент!' . PHP_EOL;
+        return "$count-й";
+    }
+}

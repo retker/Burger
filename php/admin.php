@@ -17,7 +17,7 @@ try {
 }
 try {
     // Заказы:
-    $sth_orders = $dbConnect->query('SELECT orders.*, users.name as name FROM orders,users WHERE orders.userid=users.id');
+    $sth_orders = $dbConnect->query('SELECT orders.*, users.name FROM orders,users WHERE orders.userid=users.id');
 } catch (PDOException $e) {
     echo 'Ошибка запроса к таблице заказы';
     return;
