@@ -1,4 +1,3 @@
-<per>
 <?php
 
 //Проверяем поля email и phone, а если на стороне клиента средствами html5 проверять обязательность заполнения,
@@ -7,6 +6,7 @@
 //Фаза1
 
 if ((empty($_POST['email'])) || (empty($_POST['phone']))) {
+    //header("Location: error.php?errcode=4000");
     echo('ошибка поля email и phone должны быть заполнены.');
     return null;
 }
@@ -22,12 +22,13 @@ if ($dbConnect === false) {
 
 //Проверяем по email есть ли пользователь в базе и получаем в $userId id пользователя из базы
 try {
-    $str = $dbConnect->prepare("SELECT id, email FROM users WHERE email = ?");
+    $str = $dbConnect->prepare("SELECT id, email FROM users WHERE email1 = ?");
     $str->execute([$_POST['email']]);
     $userId = $str->fetchColumn(0);
+    echo 'Проверка по email успешно прошла!' . PHP_EOL;
+    echo $userId;
 } catch (PDOException $e) {
     echo 'Проблема с запросом поиска по адресу элетронной почты.';
-    return;
 }
 
 if ($userId === false) {
@@ -82,29 +83,29 @@ try {
 // Фаза 3
 
 require_once 'functions.php';
-
-$letters = __DIR__ . DIRECTORY_SEPARATOR . '../letters';
-if (!file_exists($letters)) {
-    try {
-        mkdir($emailsFolder, 0777);
-    } catch (ErrorException $e) {
-        echo 'Отсутствует папка с архив писем или не удалось ее создать';
-        return;
-    }
-}
+require_once '../vendor/autoload.php';
 
 $emailFileName = $letters . DIRECTORY_SEPARATOR . date('Y-m-d__H-i-s') . '.txt';
-
 $userAddress = makeAddress($_POST['street'], $_POST['home'], $_POST['part'], $_POST['appt'], $_POST['floor']);
 $userOrderNum = getOrderNumber($dbConnect, $userId);
 
-$emailText = "Заказ № $orderId" . PHP_EOL;
-$emailText .= "Ваш заказ будет доставлен по адресу:\n" . PHP_EOL;
-$emailText .= $userAddress . "\n\n" . PHP_EOL;
-$emailText .= "Состав заказа: \n" . PHP_EOL;
-$emailText .= "DarkBeefBurger за 500 рублей, 1 шт\n\n" . PHP_EOL;
-$emailText .= "Спасибо!\n" . PHP_EOL;
-$emailText .= "Это Ваш " . $userOrderNum . " заказ!\n" . PHP_EOL;
+$emailText = "Заказ № $orderId\n";
+$emailText .= "Ваш заказ будет доставлен по адресу:\n";
+$emailText .= $userAddress . "\n\n";
+$emailText .= "Состав заказа: \n";
+$emailText .= "DarkBeefBurger за 500 рублей, 1 шт\n\n";
+$emailText .= "Спасибо!\n";
+$emailText .= "Это Ваш " . $userOrderNum . " заказ!\n";
 
-file_put_contents($emailFileName, $emailText);
-echo 'Письмо сформированно и сохраненно!' . PHP_EOL;
+$transport = (new Swift_SmtpTransport('smtp.mail.ru', 465, 'ssl'))
+    ->setUsername('evgen.yakovlev-46@mail.ru')
+    ->setPassword('Qw123456');
+
+$mailer = new Swift_Mailer($transport);
+
+$message = (new Swift_Message('Обратная связь с портала'))
+    ->setFrom(['evgen.yakovlev-46@mail.ru' => 'Бургерная'])
+    ->setTo(['retker@yandex.ru' => 'A name'])
+    ->setBody("$emailText");
+
+$result = $mailer->send($message);
